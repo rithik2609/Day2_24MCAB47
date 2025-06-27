@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrderFlow - Professional Order Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f8f9fa;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .card-header h3 {
+            color: #2c3e50;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .place-order .card-icon { background: linear-gradient(135deg, #4CAF50, #45a049); color: white; }
+        .update-order .card-icon { background: linear-gradient(135deg, #2196F3, #1976D2); color: white; }
+        .view-orders .card-icon { background: linear-gradient(135deg, #FF9800, #F57C00); color: white; }
+        .sales-aggregate .card-icon { background: linear-gradient(135deg, #9C27B0, #7B1FA2); color: white; }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .response-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .response-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f8f9fa;
+        }
+
+        .response-header h3 {
+            color: #2c3e50;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-left: 15px;
+        }
+
+        .response-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        #responseArea {
+            width: 100%;
+            height: 250px;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            background: #f8f9fa;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            background: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #f1f3f4;
+            vertical-align: top;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        tr:nth-child(even) {
+            background-color: #fbfbfb;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-shipped { background: #d1ecf1; color: #0c5460; }
+        .status-delivered { background: #d4edda; color: #155724; }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .response-controls {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .response-controls button {
+            width: auto;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            background: linear-gradient(135deg, #6c757d, #545b62);
+        }
+
+        .json-key {
+            color: #d73a49;
+            font-weight: bold;
+        }
+
+        .json-string {
+            color: #032f62;
+        }
+
+        .json-number {
+            color: #005cc5;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-row {
+                flex-direction: column;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            th, td {
+                padding: 8px 6px;
+                font-size: 0.8rem;
+            }
+
+            .table-container {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>OrderFlow</h1>
+        <p><span class="status-indicator"></span>Professional Order Management System</p>
+        <div style="margin-top: 15px;">
+            <label for="serverUrl" style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">Backend Server URL:</label>
+            <input id="serverUrl" value="http://localhost:8888" style="margin-left: 10px; padding: 5px 10px; border-radius: 5px; border: none; width: 200px;" onchange="updateServerUrl()">
+            <button onclick="testConnection()" style="margin-left: 10px; padding: 5px 15px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; border-radius: 5px; cursor: pointer;">Test Connection</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="grid">
+            <div class="card place-order">
+                <div class="card-header">
+                    <div class="card-icon">+</div>
+                    <h3>Place New Order</h3>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="userId">User ID</label>
+                        <input id="userId" placeholder="Enter user identifier" />
+                    </div>
+                    <div class="form-group">
+                        <label for="productId">Product ID</label>
+                        <input id="productId" placeholder="Enter product identifier" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Quantity</label>
+                    <input id="quantity" placeholder="Enter quantity" type="number" min="1" />
+                </div>
+                <button onclick="placeOrder()">Create Order</button>
+            </div>
+
+            <div class="card update-order">
+                <div class="card-header">
+                    <div class="card-icon">↻</div>
+                    <h3>Update Order Status</h3>
+                </div>
+                <div class="form-group">
+                    <label for="orderId">Order ID</label>
+                    <input id="orderId" placeholder="Enter order identifier" />
+                </div>
+                <div class="form-group">
+                    <label for="status">New Status</label>
+                    <select id="status">
+                        <option value="Pending">Pending</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Delivered">Delivered</option>
+                    </select>
+                </div>
+                <button onclick="updateOrder()">Update Status</button>
+            </div>
+
+            <div class="card view-orders">
+                <div class="card-header">
+                    <div class="card-icon">👤</div>
+                    <h3>View User Orders</h3>
+                </div>
+                <div class="form-group">
+                    <label for="searchUserId">User ID</label>
+                    <input id="searchUserId" placeholder="Enter user identifier" />
+                </div>
+                <button onclick="getOrders()">Fetch Orders</button>
+            </div>
+
+            <div class="card sales-aggregate">
+                <div class="card-header">
+                    <div class="card-icon">📊</div>
+                    <h3>Sales Analytics</h3>
+                </div>
+                <p style="color: #666; margin-bottom: 20px; font-size: 0.9rem;">
+                    Generate comprehensive sales reports and analytics
+                </p>
+                <button onclick="getSales()">Generate Report</button>
+            </div>
+        </div>
+
+        <div class="response-section">
+            <div class="response-header">
+                <div class="response-icon">📄</div>
+                <h3>System Response</h3>
+            </div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing request...</p>
+            </div>
+            <div id="responseContainer">
+                <div id="rawResponse" style="display: none;">
+                    <textarea id="responseArea" readonly placeholder="API responses will appear here..."></textarea>
+                </div>
+                <div id="tableResponse">
+                    <div class="table-container">
+                        <table id="responseTable" style="display: none;">
+                            <thead id="tableHeader"></thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="noDataMessage" class="no-data">
+                        No data to display. Make an API call to see results.
+                    </div>
+                </div>
+            </div>
+            <div class="response-controls">
+                <button onclick="toggleView()" id="toggleButton" style="display: none;">Switch to Raw View</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let base = "http://localhost:8888";
+    let currentView = 'table'; // 'table' or 'raw'
+    let lastResponseData = null;
+
+    function updateServerUrl() {
+        base = document.getElementById("serverUrl").value;
+        console.log("Backend URL updated to:", base);
+    }
+
+    function testConnection() {
+        showLoading(true);
+        fetch(`${base}/health`)
+            .then(response => {
+                if (response.ok) {
+                    showResponse("✅ Connection successful! Server is responding.");
+                } else {
+                    showResponse(`❌ Server responded with status: ${response.status}`);
+                }
+            })
+            .catch(error => {
+                showResponse(`❌ Connection failed: ${error.message}\n\nTroubleshooting tips:\n1. Make sure your backend server is running\n2. Check if the URL is correct\n3. Verify CORS is enabled on your backend\n4. Try accessing ${base} directly in your browser`);
+            });
+    }
+
+    function showLoading(show) {
+        const loading = document.getElementById("loading");
+        loading.classList.toggle("show", show);
+    }
+
+    function showResponse(data) {
+        showLoading(false);
+        lastResponseData = data;
+
+        // Always update raw response
+        const responseArea = document.getElementById("responseArea");
+        const formattedData = typeof data === "string" ? data : JSON.stringify(data, null, 2);
+        const timestamp = new Date().toLocaleString();
+        responseArea.value = `[${timestamp}] Response:\n${formattedData}`;
+
+        // Try to display as table
+        displayAsTable(data);
+
+        // Show toggle button
+        document.getElementById("toggleButton").style.display = "inline-block";
+    }
+
+    function displayAsTable(data) {
+        const table = document.getElementById("responseTable");
+        const tableHeader = document.getElementById("tableHeader");
+        const tableBody = document.getElementById("tableBody");
+        const noDataMessage = document.getElementById("noDataMessage");
+
+        // Clear previous content
+        tableHeader.innerHTML = "";
+        tableBody.innerHTML = "";
+
+        // Hide no data message initially
+        noDataMessage.style.display = "none";
+
+        try {
+            let parsedData = data;
+            if (typeof data === "string") {
+                // Try to parse if it's a JSON string
+                try {
+                    parsedData = JSON.parse(data);
+                } catch (e) {
+                    // If it's not JSON, display as simple message
+                    displaySimpleMessage(data);
+                    return;
+                }
+            }
+
+            if (Array.isArray(parsedData) && parsedData.length > 0) {
+                // Display array as table
+                createTableFromArray(parsedData, tableHeader, tableBody);
+                table.style.display = "table";
+            } else if (typeof parsedData === "object" && parsedData !== null) {
+                // Display object as key-value table
+                createTableFromObject(parsedData, tableHeader, tableBody);
+                table.style.display = "table";
+            } else {
+                // Display simple message
+                displaySimpleMessage(data);
+            }
+        } catch (error) {
+            displaySimpleMessage(data);
+        }
+    }
+
+    function createTableFromArray(data, header, body) {
+        if (data.length === 0) {
+            document.getElementById("noDataMessage").style.display = "block";
+            return;
+        }
+
+        // Get all unique keys from all objects
+        const allKeys = new Set();
+        data.forEach(item => {
+            if (typeof item === "object" && item !== null) {
+                Object.keys(item).forEach(key => allKeys.add(key));
+            }
+        });
+
+        const keys = Array.from(allKeys);
+
+        // Create header
+        const headerRow = document.createElement("tr");
+        keys.forEach(key => {
+            const th = document.createElement("th");
+            th.textContent = formatHeaderText(key);
+            headerRow.appendChild(th);
+        });
+        header.appendChild(headerRow);
+
+        // Create body rows
+        data.forEach(item => {
+            const row = document.createElement("tr");
+            keys.forEach(key => {
+                const td = document.createElement("td");
+                const value = item[key];
+
+                if (key.toLowerCase().includes('status') && typeof value === 'string') {
+                    td.innerHTML = `<span class="status-badge status-${value.toLowerCase()}">${value}</span>`;
+                } else if (key.toLowerCase().includes('date') || key.toLowerCase().includes('time')) {
+                    td.textContent = formatDate(value);
+                } else {
+                    td.textContent = value !== undefined && value !== null ? value : '-';
+                }
+                row.appendChild(td);
+            });
+            body.appendChild(row);
+        });
+    }
+
+    function createTableFromObject(data, header, body) {
+        // Create header for key-value pairs
+        const headerRow = document.createElement("tr");
+        const keyHeader = document.createElement("th");
+        keyHeader.textContent = "Property";
+        const valueHeader = document.createElement("th");
+        valueHeader.textContent = "Value";
+        headerRow.appendChild(keyHeader);
+        headerRow.appendChild(valueHeader);
+        header.appendChild(headerRow);
+
+        // Create rows for each key-value pair
+        Object.entries(data).forEach(([key, value]) => {
+            const row = document.createElement("tr");
+
+            const keyCell = document.createElement("td");
+            keyCell.innerHTML = `<strong>${formatHeaderText(key)}</strong>`;
+
+            const valueCell = document.createElement("td");
+            if (typeof value === "object" && value !== null) {
+                valueCell.textContent = JSON.stringify(value, null, 2);
+            } else if (key.toLowerCase().includes('status') && typeof value === 'string') {
+                valueCell.innerHTML = `<span class="status-badge status-${value.toLowerCase()}">${value}</span>`;
+            } else {
+                valueCell.textContent = value !== undefined && value !== null ? value : '-';
+            }
+
+            row.appendChild(keyCell);
+            row.appendChild(valueCell);
+            body.appendChild(row);
+        });
+    }
+
+    function displaySimpleMessage(data) {
+        const table = document.getElementById("responseTable");
+        const noDataMessage = document.getElementById("noDataMessage");
+
+        table.style.display = "none";
+        noDataMessage.style.display = "block";
+        noDataMessage.innerHTML = `<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea;">
+            <strong>Response:</strong><br>
+            <div style="margin-top: 10px; font-family: monospace; white-space: pre-wrap;">${typeof data === "string" ? data : JSON.stringify(data, null, 2)}</div>
+        </div>`;
+    }
+
+    function formatHeaderText(text) {
+        return text.replace(/([A-Z])/g, ' $1')
+                  .replace(/^./, str => str.toUpperCase())
+                  .replace(/_/g, ' ')
+                  .trim();
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleString();
+        } catch (e) {
+            return dateString;
+        }
+    }
+
+    function toggleView() {
+        const rawResponse = document.getElementById("rawResponse");
+        const tableResponse = document.getElementById("tableResponse");
+        const toggleButton = document.getElementById("toggleButton");
+
+        if (currentView === 'table') {
+            // Switch to raw view
+            rawResponse.style.display = "block";
+            tableResponse.style.display = "none";
+            toggleButton.textContent = "Switch to Table View";
+            currentView = 'raw';
+        } else {
+            // Switch to table view
+            rawResponse.style.display = "none";
+            tableResponse.style.display = "block";
+            toggleButton.textContent = "Switch to Raw View";
+            currentView = 'table';
+        }
+    }
+
+    function handleError(error) {
+        showLoading(false);
+        showResponse(`Error: ${error.message || 'Network error occurred'}`);
+    }
+
+    function placeOrder() {
+        const userId = document.getElementById("userId").value;
+        const productId = document.getElementById("productId").value;
+        const quantity = document.getElementById("quantity").value;
+
+        if (!userId || !productId || !quantity) {
+            showResponse("Error: Please fill in all required fields");
+            return;
+        }
+
+        showLoading(true);
+        fetch(`${base}/orders`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                userId: userId,
+                productId: productId,
+                quantity: parseInt(quantity)
+            })
+        })
+        .then(res => res.text())
+        .then(showResponse)
+        .catch(handleError);
+    }
+
+    function updateOrder() {
+        const id = document.getElementById("orderId").value;
+        const status = document.getElementById("status").value;
+
+        if (!id) {
+            showResponse("Error: Please enter an Order ID");
+            return;
+        }
+
+        showLoading(true);
+        fetch(`${base}/orders/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status })
+        })
+        .then(res => res.text())
+        .then(showResponse)
+        .catch(handleError);
+    }
+
+    function getOrders() {
+        const userId = document.getElementById("searchUserId").value;
+
+        if (!userId) {
+            showResponse("Error: Please enter a User ID");
+            return;
+        }
+
+        showLoading(true);
+        fetch(`${base}/orders/user/${userId}`)
+            .then(res => res.json())
+            .then(showResponse)
+            .catch(handleError);
+    }
+
+    function getSales() {
+        showLoading(true);
+        fetch(`${base}/orders/sales/aggregate`)
+            .then(res => res.json())
+            .then(showResponse)
+            .catch(handleError);
+    }
+
+    // Clear form after successful operations
+    function clearForm(formIds) {
+        formIds.forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.value = '';
+        });
+    }
+
+    // Add Enter key support for forms
+    document.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            const target = e.target;
+            if (target.closest('.place-order')) placeOrder();
+            else if (target.closest('.update-order')) updateOrder();
+            else if (target.closest('.view-orders')) getOrders();
+        }
+    });
+</script>
+</body>
+</html>
