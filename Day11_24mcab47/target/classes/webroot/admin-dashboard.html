@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - Event Token System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Tailwind & Animate.css -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        body {
+          background: linear-gradient(to right, #f9f9f9, #eef2f7);
+        }
+
+        .modal-bg {
+          background-color: rgba(0, 0, 0, 0.6);
+        }
+    </style>
+</head>
+<body class="p-6 min-h-screen">
+
+<div class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-xl animate__animated animate__fadeIn">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">🛠️ Admin Dashboard</h2>
+        <button onclick="logout()"
+                class="bg-red-500 text-white px-4 py-2 rounded-xl hover:bg-red-600 transition">
+            Logout
+        </button>
+    </div>
+
+    <!-- Event Controls -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center mb-2">
+            <h3 class="text-xl font-semibold text-gray-700">📅 Events</h3>
+            <button onclick="openModal()"
+                    class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition">
+                + Create Event
+            </button>
+        </div>
+        <div id="eventList" class="grid md:grid-cols-2 gap-4"></div>
+    </div>
+
+    <!-- Booking Records -->
+    <div>
+        <h3 class="text-xl font-semibold text-gray-700 mb-2">📖 Bookings</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-blue-50 rounded-xl text-sm text-left">
+                <thead>
+                <tr class="text-blue-800">
+                    <th class="p-3">User Email</th>
+                    <th class="p-3">Event ID</th>
+                    <th class="p-3">Token</th>
+                    <th class="p-3">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="bookingTable" class="text-blue-900">
+                <!-- Bookings will appear here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="modal" class="fixed inset-0 hidden items-center justify-center modal-bg z-50">
+    <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-sm animate__animated animate__fadeInDown">
+        <h4 class="text-lg font-bold mb-4">Add Event</h4>
+        <form id="eventForm" class="space-y-4">
+            <input id="eventId" required placeholder="Event ID"
+                   class="w-full px-3 py-2 border rounded-xl" />
+            <input id="title" required placeholder="Event Title"
+                   class="w-full px-3 py-2 border rounded-xl" />
+            <input id="date" required type="date"
+                   class="w-full px-3 py-2 border rounded-xl" />
+            <input id="tokens" required type="number" min="1" placeholder="Token Count"
+                   class="w-full px-3 py-2 border rounded-xl" />
+            <div class="flex justify-between">
+                <button type="submit"
+                        class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition">
+                    Save
+                </button>
+                <button type="button" onclick="closeModal()"
+                        class="bg-gray-300 text-black px-4 py-2 rounded-xl hover:bg-gray-400 transition">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const admin = sessionStorage.getItem("admin");
+    if (!admin) location.href = "admin-login.html";
+
+    const eventList = document.getElementById("eventList");
+    const bookingTable = document.getElementById("bookingTable");
+
+    function logout() {
+      sessionStorage.clear();
+      location.href = "index.html";
+    }
+
+    function openModal() {
+      document.getElementById("modal").classList.remove("hidden");
+    }
+
+    function closeModal() {
+      document.getElementById("modal").classList.add("hidden");
+      document.getElementById("eventForm").reset();
+    }
+
+    // Load Events
+    async function loadEvents() {
+      const res = await fetch("http://localhost:8888/events");
+      const events = await res.json();
+      eventList.innerHTML = "";
+      events.forEach(ev => {
+        const card = document.createElement("div");
+        card.className = "bg-blue-100 p-4 rounded-xl shadow-sm";
+        card.innerHTML = `
+          <h4 class="font-bold text-lg">${ev.title}</h4>
+          <p>Date: ${ev.date}</p>
+          <p>Tokens: ${ev.tokensAvailable}</p>
+          <div class="mt-2 flex gap-2">
+            <button onclick="deleteEvent('${ev._id}')" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>
+          </div>
+        `;
+        eventList.appendChild(card);
+      });
+    }
+
+    // Load Bookings
+    async function loadBookings() {
+      const res = await fetch("http://localhost:8888/admin/bookings");
+      const bookings = await res.json();
+      bookingTable.innerHTML = "";
+      bookings.forEach(b => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td class="p-3">${b.userEmail}</td>
+          <td class="p-3">${b.eventId}</td>
+          <td class="p-3">${b.token}</td>
+          <td class="p-3">
+            <button onclick="deleteBooking('${b.token}')" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>
+          </td>
+        `;
+        bookingTable.appendChild(row);
+      });
+    }
+
+    // Delete Event
+    async function deleteEvent(id) {
+      await fetch(`http://localhost:8888/admin/event/${id}`, { method: "DELETE" });
+      loadEvents();
+    }
+
+    // Delete Booking
+    async function deleteBooking(token) {
+      await fetch(`http://localhost:8888/admin/booking/${token}`, { method: "DELETE" });
+      loadBookings();
+    }
+
+    // Add Event
+    document.getElementById("eventForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const eventId = document.getElementById("eventId").value;
+      const title = document.getElementById("title").value;
+      const date = document.getElementById("date").value;
+      const tokens = parseInt(document.getElementById("tokens").value);
+
+      await fetch("http://localhost:8888/admin/event", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ _id: eventId, title, date, tokensAvailable: tokens })
+      });
+
+      closeModal();
+      loadEvents();
+    });
+
+    loadEvents();
+    loadBookings();
+</script>
+</body>
+</html>

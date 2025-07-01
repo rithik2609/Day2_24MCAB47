@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Dashboard - Event Token</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Tailwind & Animate.css -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        body {
+            background: linear-gradient(to right, #f0f4ff, #e0ecff);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-6">
+
+<div class="max-w-4xl mx-auto bg-white p-6 rounded-xl shadow-xl animate__animated animate__fadeIn">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-bold text-blue-700">📅 Available Events</h2>
+        <button onclick="logout()"
+                class="text-sm bg-red-500 text-white px-4 py-2 rounded-xl hover:bg-red-600 transition">
+            Logout
+        </button>
+    </div>
+
+    <div id="eventsList" class="grid gap-4 md:grid-cols-2 mt-4">
+        <!-- Events will be loaded here -->
+    </div>
+</div>
+
+<div id="msg" class="text-center text-green-600 font-semibold mt-6 hidden animate__animated animate__fadeInUp"></div>
+
+<script>
+    const email = sessionStorage.getItem("user");
+    if (!email) location.href = "user-login.html";
+
+    const eventsList = document.getElementById("eventsList");
+    const msgBox = document.getElementById("msg");
+
+    async function loadEvents() {
+        try {
+            const res = await fetch("http://localhost:8888/events");
+            const events = await res.json();
+
+            eventsList.innerHTML = "";
+
+            events.forEach(e => {
+                const card = document.createElement("div");
+                card.className = "bg-blue-50 border border-blue-200 p-4 rounded-xl shadow hover:shadow-lg transition";
+                card.innerHTML = `
+                    <h3 class="text-xl font-bold text-blue-800">${e.title}</h3>
+                    <p class="text-gray-600">Date: ${e.date}</p>
+                    <p class="text-gray-600">Tokens Left: ${e.tokensAvailable}</p>
+                    <button onclick="bookToken('${e._id}', '${e.title}')"
+                        class="mt-3 w-full bg-blue-600 text-white py-2 rounded-xl hover:bg-blue-700 transition">
+                        Book Token
+                    </button>
+                `;
+                eventsList.appendChild(card);
+            });
+        } catch (err) {
+            eventsList.innerHTML = "<p class='text-red-500'>Failed to load events.</p>";
+        }
+    }
+
+    async function bookToken(eventId, title) {
+        try {
+            const res = await fetch("http://localhost:8888/book", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, eventId })
+            });
+
+            if (res.ok) {
+                msgBox.innerText = `🎉 Token booked for "${title}". Check your email!`;
+                msgBox.classList.remove("hidden");
+                msgBox.classList.add("animate__fadeInUp");
+                loadEvents(); // refresh token counts
+            } else {
+                msgBox.innerText = "❌ Booking failed. You may have already booked.";
+                msgBox.classList.remove("hidden");
+                msgBox.classList.add("animate__fadeInUp");
+            }
+        } catch (err) {
+            msgBox.innerText = "❌ Error booking token.";
+            msgBox.classList.remove("hidden");
+        }
+    }
+
+    function logout() {
+        sessionStorage.clear();
+        window.location.href = "index.html";
+    }
+
+    window.onload = loadEvents;
+</script>
+
+</body>
+</html>
